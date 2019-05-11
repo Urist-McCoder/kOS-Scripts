@@ -1,6 +1,6 @@
 @LazyGlobal off.
 
-import("converter").
+import("misc/converter").
 import("obt/vec").
 import("obt/timeToNodes").
 
@@ -31,9 +31,6 @@ global function planeChange {
 	
 	local nodeTime1 is time0 + nodeTimes[0].
 	local nodeTime2 is time0 + nodeTimes[1].
-	
-	local orgVec1 is velocityAt(origin, nodeTime1):orbit.
-	local bodyVec1 is origin:body:position - positionAt(origin, nodeTime1).
 	
 	local corrVec1 is calculateVec(origin, tgtNormal, nodeTime1).
 	local corrVec2 is calculateVec(origin, tgtNormal, nodeTime2).

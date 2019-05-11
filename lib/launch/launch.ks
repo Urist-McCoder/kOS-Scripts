@@ -2,10 +2,12 @@
 
 import("burn/circularize").
 import("ship/caPitch").
+import("misc/converter").
 import("misc/logger").
 import("misc/loopPrint").
 import("misc/smartStage").
 import("misc/smartWarp").
+import("misc/vec").
 
 
 local settings is Lexicon().
@@ -52,7 +54,7 @@ local function printSettings {
 }
 
 local function loopP {
-	parameter mes.
+	parameter printList is List().
 	
 	local aoa is vang(ship:velocity:surface, ship:facing:forevector).
 	local etaApo is ETA:apoapsis.
@@ -60,13 +62,12 @@ local function loopP {
 		set etaApo to ETA:apoapsis - ship:obt:period.
 	}
 	
-	loopPrint(List(
-		mes,
-		"AoA:   " + round(aoa, 2) + "°",
-		"Q:     " + round(ship:dynamicpressure, 2),
-		"Apoapsis(km): " + round(ship:apoapsis / 1e3, 2),
-		"ETA apoapsis: " + round(etaApo, 2)
-	)).
+	printList:add("AoA:   " + round(aoa, 2) + "°").
+	printList:add("Q:     " + round(ship:dynamicpressure, 2)).
+	printList:add("Apoapsis(km): " + round(ship:apoapsis / 1e3, 2)).
+	printList:add("ETA apoapsis: " + round(etaApo, 2)).
+	
+	loopPrint(printList).
 }
 
 global function launch {
@@ -111,12 +112,28 @@ global function launch {
 	local boosterStage is settings["boosterStage"].
 	local boosterDropPeri is settings["boosterDropPeri"].
 	
-	local function getAzymuth() {
-		return 90.	// TODO
+	local incSin is sin(tgtInc).
+	local tgtAzymuth is 0.
+	
+	local function getAzymuth {
+		local obtLng to lngBodyToObt(ship:body, ship:longitude).
+		local diff to mod(obtLng - tgtLAN + 360, 360).
+		
+		// spherical triangle, a = inc, b = 90°, c = diff
+		set tgtAzymuth to arccos(incSin * cos(diff)).
+		
+		local horVec is vxcl(ship:body:position, ship:velocity:orbit).
+		local tgtVec is Heading(tgtAzymuth, 0):forevector.
+		set tgtVec:mag to 2 * horVec:mag.
+		
+		local corrVec is tgtVec - horVec.
+		return azymuthOfVector(corrVec).
 	}
 	
 	logger("ascending").
-	lock steering to Heading(getAzymuth(), getPitch()).
+	local lock stAzymuth to getAzymuth().
+	local lock stPitch to getPitch().
+	lock steering to Heading(stAzymuth, stPitch).
 	lock throttle to 1.
 	
 	until (ship:apoapsis > tgtAlt + 500) {
@@ -125,7 +142,11 @@ global function launch {
 			smartStage(true).
 		}
 		
-		loopP("Pitch: " + round(stPitch, 2) + "°").
+		loopP(List(
+			"Pitch:   " + round(stPitch, 2) + "°",
+			"Azymuth (calc): " + round(tgtAzymuth, 2) + "°",
+			"Azymuth (corr): " + round(stAzymuth, 2) + "°"
+		)).
 		smartStage().
 		wait 0.
 	}
@@ -140,7 +161,7 @@ global function launch {
 			lock throttle to 0.
 		}
 		
-		loopP("Coasting from atmosphere").
+		loopP(List("Coasting from atmosphere")).
 		smartStage().
 		wait 0.
 	}
