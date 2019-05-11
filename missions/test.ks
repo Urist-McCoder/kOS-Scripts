@@ -7,15 +7,13 @@ import("globals").
 set MISSION_SCRIPT["import"] to {
 	set MISSION_NAME to "TEST".
 	
-	import("misc/converter").
-	import("launch/launch").
+	import("landing/landing").
 }.
 
 set MISSION_SCRIPT["execute"] to {
-	local settings is launchSettings().
-	set settings["altitude"] to 1e5.
-	set settings["inclination"] to 90.
-	set settings["LAN"] to lngBodyToObt(ship:body, ship:longitude).
+	lock STEERING to HEADING(90, 80).
+	lock THROTTLE to 1.
 	
-	launch().
+	wait until ship:verticalSpeed > 100. lock THROTTLE to 0.
+	wait until ship:verticalSpeed < -2. landing(1.85, 0, 1).
 }.
