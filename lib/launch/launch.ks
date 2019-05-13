@@ -1,13 +1,14 @@
 @LazyGlobal off.
 
 import("burn/circularize").
-import("ship/caPitch").
+import("launch/window").
 import("misc/converter").
 import("misc/logger").
 import("misc/loopPrint").
 import("misc/smartStage").
 import("misc/smartWarp").
 import("misc/vec").
+import("ship/caPitch").
 
 
 local settings is Lexicon().
@@ -18,7 +19,7 @@ global function launchSettings {
 	
 	set settings0["suborbital"] to false.
 	set settings0["boosterStage"] to -1.
-	set settings0["boosterDropPeri"] to 2e4.
+	set settings0["boosterDropPeriapsis"] to 2e4.
 	
 	// ascent curve
 	set settings0["alt90deg"] to 0.
@@ -30,6 +31,10 @@ global function launchSettings {
 	set settings0["altitude"] to 8e4.
 	set settings0["inclination"] to ship:obt:inclination.
 	set settings0["LAN"] to ship:obt:LAN.
+	
+	// launch window
+	set settings0["waitForLaunchWindow"] to false.
+	set settings0["launchWindowAheadSec"] to 10.
 	
 	set settings to settings0.
 	return settings.
@@ -110,7 +115,7 @@ global function launch {
 	local tgtLAN is settings["LAN"].
 	
 	local boosterStage is settings["boosterStage"].
-	local boosterDropPeri is settings["boosterDropPeri"].
+	local boosterDropPeri is settings["boosterDropPeriapsis"].
 	
 	local incSin is sin(tgtInc).
 	local tgtAzymuth is 0.
@@ -128,6 +133,16 @@ global function launch {
 		
 		local corrVec is tgtVec - horVec.
 		return azymuthOfVector(corrVec).
+	}
+	
+	if (settings["waitForLaunchWindow"]) {
+		local times is timeToLaunchWindow(ship:latitude, tgtInc, tgtLAN).
+		local ahead is settings["launchWindowAheadSec"].
+		
+		local t1 is mod(times[0] - ahead + ship:body:rotationPeriod, ship:body:rotationPeriod).
+		local t2 is mod(times[1] - ahead + ship:body:rotationPeriod, ship:body:rotationPeriod).
+		
+		smartWarp(min(t1, t2), "launch window", 5).
 	}
 	
 	logger("ascending").
