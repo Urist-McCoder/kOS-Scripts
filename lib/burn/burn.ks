@@ -40,19 +40,19 @@ global function burn {
 		return false.
 	}
 	
-	
 	lock steering to burnVecFunction().
 	smartWarp(burnUT - time:seconds, settings["message"], warpStop).
 	
 	local t0 is time:seconds.
 	local lock burnT to time:seconds - t0.
 	
-	local stopPred is {return stopPredicate().}.
-	if (settings["stopParam"]) {
-		set stopPred to {
+	local stopPred is {
+		if (settings["stopParam"]) {
 			return stopPredicate(burnT).
-		}.
-	}
+		} else {
+			return stopPredicate().
+		}
+	}.
 	
 	until (stopPred()) {
 		if (vang(steering, ship:facing:forevector) < 5) {

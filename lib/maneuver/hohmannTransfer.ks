@@ -23,7 +23,7 @@ global function hohmannTransferWindow {
 	parameter maxIncDifference is 2.
 	
 	if (p_from:body <> p_to:body) {
-		// that's illegal, kill the whole script
+		// wait, that's illegal
 		print 1 / 0.
 	}
 	
@@ -61,14 +61,6 @@ global function hohmannTransferWindow {
 		local tgtAngle is mod(mod(180 - transferTime * wT, 360) + 360, 360).
 		local angleDiff is mod(angDiff - tgtAngle + 360, 360).
 		
-		print "wF:      " + wF.
-		print "wT:      " + wT.
-		print "w:       " + w.
-		print "angDiff: " + angDiff.
-		print "transT:  " + transferTime.
-		print "tgtAng:  " + tgtAngle.
-		print "angleD:  " + angleDiff.
-		
 		local result is abs(angleDiff / w).
 		if (returnUT) {
 			set result to time:seconds + result.
@@ -77,7 +69,7 @@ global function hohmannTransferWindow {
 		return result.
 	} else {
 		// TODO
-		print "non complanar".
+		print "non coplanar".
 		return hohmannTransferWindow(p_from, p_to, offset, returnUT, 180).
 	}
 }

@@ -27,12 +27,13 @@ global function landing {
 	
 	lock steering to -ship:velocity:surface.
 	local burning is false.
+	local haveBurned is false.
 	
 	logger("landing [minThrottle: " + minThrottle + "; targetThrottle: " + targetThrottle + "]").
 	when (ship:status = "LANDED" or ship:status = "SPLASHED") then {
 		logger("landed [vSpd: " + ship:verticalSpeed + "]").
 	}
-	when (ETL < 4) then {
+	when (haveBurned and ETL < 4) then {
 		logger("deploying landing legs").
 		LEGS on.
 	}
@@ -51,6 +52,10 @@ global function landing {
 			if (thr >= targetThrottle) {
 				lock throttle to thr.
 				set burning to true.
+				
+				if (not haveBurned) {
+					set haveBurned to true.
+				}
 			}
 		}
 		

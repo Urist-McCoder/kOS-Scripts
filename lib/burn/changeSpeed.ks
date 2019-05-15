@@ -16,12 +16,13 @@ global function changeSpeed {
 	local tgtBurnTime is burnTime(dV).
 	
 	local burnVec is {return burnVecFunction().}.
-	local stopPred is {parameter burnTime. return burnTime >= tgtBurnTime.}.
+	local stopPred is {parameter burnT. return burnT >= tgtBurnTime.}.
 	local thrFunc is {return 1.}.
 	
 	if (dV < 0) {
 		set burnVec to {return -burnVecFunction().}.
 	}
 	
+	print stopPred(2).
 	return burn(burnVec, stopPred, thrFunc, time:seconds + burnETA).
 }

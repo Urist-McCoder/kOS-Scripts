@@ -3,7 +3,7 @@
 global function normalVector {
 	parameter orbitable is ship.
 	
-	local obtVec is orbitable:velocity:orbit.
+	local obtVec is orbitable:velocity:orbit - orbitable:body:velocity:orbit.
 	local radVec is orbitable:body:position - orbitable:position.
 	
 	return vcrs(radVec, obtVec):normalized.

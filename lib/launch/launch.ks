@@ -27,6 +27,12 @@ global function launchSettings {
 	set settings0["alt45deg"] to 2e4.
 	set settings0["alt0deg"] to 5e4.
 	
+	// TWR curve (-1 for no TWR limit)
+	set settings0["twr90deg"] to -1.
+	set settings0["twr60deg"] to -1.
+	set settings0["twr45deg"] to -1.
+	set settings0["twr0deg"] to -1.
+	
 	// orbital parameters
 	set settings0["altitude"] to 8e4.
 	set settings0["inclination"] to ship:obt:inclination.
@@ -34,7 +40,7 @@ global function launchSettings {
 	
 	// launch window
 	set settings0["waitForLaunchWindow"] to false.
-	set settings0["launchWindowAheadSec"] to 10.
+	set settings0["launchWindowAheadSec"] to 50.
 	
 	set settings to settings0.
 	return settings.
@@ -67,8 +73,8 @@ local function loopP {
 		set etaApo to ETA:apoapsis - ship:obt:period.
 	}
 	
-	printList:add("AoA:   " + round(aoa, 2) + "°").
-	printList:add("Q:     " + round(ship:dynamicpressure, 2)).
+	printList:add("AoA: " + round(aoa, 2) + "°").
+	printList:add("Q:   " + round(ship:dynamicpressure, 2)).
 	printList:add("Apoapsis(km): " + round(ship:apoapsis / 1e3, 2)).
 	printList:add("ETA apoapsis: " + round(etaApo, 2)).
 	
@@ -107,6 +113,66 @@ global function launch {
 			return max(tgtPitch, caPitch()).
 		}
 	}	
+	
+	local twr90 is settings["twr90deg"].
+	local twr60 is settings["twr60deg"].
+	local twr45 is settings["twr45deg"].
+	local twr0  is settings["twr0deg"].
+	
+	local function twrOf {
+		parameter twr.
+		parameter maxTwr.
+		
+		if (twr < 0) {
+			return maxTwr.
+		} else {
+			return twr.
+		}
+	}
+	
+	local function getTwr {
+		parameter maxTwr.
+		
+		local loTwr is maxTwr.
+		local hiTwr is maxTwr.
+		local f is 0.
+		
+		if (ship:altitude < a90) {
+			return twrOf(twr90).
+		} else if (ship:altitude < a60) {
+			set f to (ship:altitude - a90) / a60_90.
+		
+			if (twr90 > 0) {
+				set loTwr to twr90.
+			}
+			if (twr60 > 0) {
+				set hiTwr to twr60.
+			}
+		} else if (ship:altitude < a45) {
+			set f to (ship:altitude - a60) / a45_60.
+		
+			if (twr60 > 0) {
+				set loTwr to twr60.
+			}
+			if (twr45 > 0) {
+				set hiTwr to twr45.
+			}
+		} else if (ship:altitude < a0) {
+			set f to (ship:altitude - a45) / a0_45.
+		
+			if (twr45 > 0) {
+				set loTwr to twr45.
+			}
+			if (twr0 > 0) {
+				set hiTwr to twr0.
+			}
+		} else {
+			return twrOf(twr0, maxTwr).
+		}
+		
+		local twrDiff is hiTwr - loTwr.
+		return twrOf(loTwr + f * twrDiff, maxTwr).
+	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 	
@@ -149,7 +215,18 @@ global function launch {
 	local lock stAzymuth to getAzymuth().
 	local lock stPitch to getPitch().
 	lock steering to Heading(stAzymuth, stPitch).
-	lock throttle to 1.
+	
+	local lock g to ship:body:mu / (ship:body:position - ship:position):mag^2.
+	local lock maxTwr to ship:availablethrust / (g * ship:mass).
+	local lock tgtTwr to getTwr(maxTwr).
+	local thrFunction is {
+		if (ship:availablethrust > 0) {
+			return min(1, max(0, tgtTwr / maxTwr)).
+		} else {
+			return 1.
+		}
+	}.
+	lock throttle to thrFunction().
 	
 	until (ship:apoapsis > tgtAlt + 500) {
 		// separate booster stage
@@ -160,7 +237,8 @@ global function launch {
 		loopP(List(
 			"Pitch:   " + round(stPitch, 2) + "°",
 			"Azymuth (calc): " + round(tgtAzymuth, 2) + "°",
-			"Azymuth (corr): " + round(stAzymuth, 2) + "°"
+			"Azymuth (corr): " + round(stAzymuth, 2) + "°",
+			"TWR: " + round(tgtTwr, 2)
 		)).
 		smartStage().
 		wait 0.
