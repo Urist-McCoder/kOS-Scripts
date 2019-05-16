@@ -27,7 +27,7 @@ local function doLaunch {
 	set launchSettings["twr60deg"] to 2.5.
 	set launchSettings["twr45deg"] to 3.
 	set launchSettings["twr0deg"] to -1.
-	set launchSettings["boosterStage"] to 2.
+	set launchSettings["boosterStage"] to 1.
 	
 	launch().
 	stage.

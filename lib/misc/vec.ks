@@ -3,9 +3,8 @@
 global function azymuthOfVector {
 	parameter p_vec.
 	parameter p_orbitable is ship.
-	parameter p_parentBody is ship:body.
 	
-	local radiusVector is p_orbitable:position - p_parentBody:position.
+	local radiusVector is p_orbitable:position - p_orbitable:body:position.
 	local horVec is vxcl(radiusVector, p_vec).
 	
 	local nVec is p_orbitable:north:forevector.

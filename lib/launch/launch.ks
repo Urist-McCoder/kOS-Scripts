@@ -20,6 +20,7 @@ global function launchSettings {
 	set settings0["suborbital"] to false.
 	set settings0["boosterStage"] to -1.
 	set settings0["boosterDropPeriapsis"] to 2e4.
+	set settings0["useRCS"] to true.
 	
 	// ascent curve
 	set settings0["alt90deg"] to 0.
@@ -40,7 +41,7 @@ global function launchSettings {
 	
 	// launch window
 	set settings0["waitForLaunchWindow"] to false.
-	set settings0["launchWindowAheadSec"] to 50.
+	set settings0["launchWindowAheadSec"] to 30.
 	
 	set settings to settings0.
 	return settings.
@@ -58,14 +59,11 @@ local function printSettings {
 	logger(s + "Alt: " + round(settings["altitude"] / 1000, 2) + "km").
 	logger(s + "Inc: " + round(settings["inclination"], 2)).
 	logger(s + "LAN: " + round(settings["LAN"], 2)).
-	logger(s + "90°: " + round(settings["alt90deg"] / 1000, 2) + "km").
-	logger(s + "60°: " + round(settings["alt60deg"] / 1000, 2) + "km").
-	logger(s + "45°: " + round(settings["alt45deg"] / 1000, 2) + "km").
-	logger(s + "0° : " + round(settings["alt0deg"] / 1000, 2) + "km").
 }
 
 local function loopP {
 	parameter printList is List().
+	parameter showAoa is true.
 	
 	local aoa is vang(ship:velocity:surface, ship:facing:forevector).
 	local etaApo is ETA:apoapsis.
@@ -73,8 +71,9 @@ local function loopP {
 		set etaApo to ETA:apoapsis - ship:obt:period.
 	}
 	
-	printList:add("AoA: " + round(aoa, 2) + "°").
-	printList:add("Q:   " + round(ship:dynamicpressure, 2)).
+	if (showAoa) {
+		printList:add("AoA: " + round(aoa, 2) + "°").
+	}
 	printList:add("Apoapsis(km): " + round(ship:apoapsis / 1e3, 2)).
 	printList:add("ETA apoapsis: " + round(etaApo, 2)).
 	
@@ -138,7 +137,7 @@ global function launch {
 		local f is 0.
 		
 		if (ship:altitude < a90) {
-			return twrOf(twr90).
+			return twrOf(twr90, maxTwr).
 		} else if (ship:altitude < a60) {
 			set f to (ship:altitude - a90) / a60_90.
 		
@@ -187,11 +186,14 @@ global function launch {
 	local tgtAzymuth is 0.
 	
 	local function getAzymuth {
-		local obtLng to lngBodyToObt(ship:body, ship:longitude).
-		local diff to mod(obtLng - tgtLAN + 360, 360).
+		local obtLng is lngBodyToObt(ship:body, ship:longitude).
+		local diff is mod(obtLng - tgtLAN + 360, 360).
 		
-		// spherical triangle, a = inc, b = 90°, c = diff
+		// spherical triangle, alpha = inc, beta = 90°, C = diff
 		set tgtAzymuth to arccos(incSin * cos(diff)).
+		if (tgtInc > 90) {
+			set tgtAzymuth to 360 - tgtAzymuth.
+		}
 		
 		local horVec is vxcl(ship:body:position, ship:velocity:orbit).
 		local tgtVec is Heading(tgtAzymuth, 0):forevector.
@@ -228,7 +230,7 @@ global function launch {
 	}.
 	lock throttle to thrFunction().
 	
-	until (ship:apoapsis > tgtAlt + 500) {
+	until (ship:apoapsis >= tgtAlt) {
 		// separate booster stage
 		if (stage:number = boosterStage and ship:periapsis >= boosterDropPeri) {
 			smartStage(true).
@@ -262,15 +264,54 @@ global function launch {
 	lock throttle to 0.
 	toggle ag10.	// solar panels, antennas etc.
 	
-	// separate booster stage
-	if (stage:number = boosterStage) {
-		smartStage(true).
-	}
-	
-	if (not settings["suborbital"]) {
+	if (settings["suborbital"]) {
+		// separate booster stage
+		if (stage:number = boosterStage) {
+			smartStage(true).
+		}
+	} else {
+		if (settings["useRCS"]) {
+			RCS on.
+		}
+		
 		lock steering to ship:velocity:orbit.
 		if (ETA:apoapsis < ETA:periapsis) {
 			smartWarp(ETA:apoapsis - 5, "coasting to apoapsis", 5).
+		}
+		
+		// CA burn
+		lock throttle to 1.
+		until (ship:periapsis >= max(0, boosterDropPeri - 500)) {
+			local maxAcc is ship:availablethrust / ship:mass.
+		
+			if (maxAcc > 0) {
+				local altDiff is tgtAlt - ship:altitude.
+				local maxVAcc is maxAcc / 5.
+				local maxVSpeed is maxVAcc * 5.
+				local tgtVSpeed is min(maxVSpeed, max(-maxVSpeed, altDiff / 10)).
+				
+				local az is azymuthOfVector(ship:velocity:orbit).
+				local pt is caPitch(tgtVSpeed, maxVAcc).
+				
+				lock steering to Heading(az, pt).
+				
+				loopP(List(
+					"maxAcc:    " + round(maxAcc, 2),
+					"maxVAcc:   " + round(maxVAcc, 2),
+					"maxVSpeed: " + round(maxVSpeed, 2),
+					"tgtVSpeed: " + round(tgtVSpeed, 2),
+					"actVSpeed: " + round(ship:verticalspeed, 2),
+					"CA pitch:  " + round(pt, 2)
+				), false).
+			}
+			
+			wait 0.
+		}
+		lock throttle to 0.
+		
+		// separate booster stage
+		if (stage:number = boosterStage) {
+			smartStage(true).
 		}
 		
 		circularize().
