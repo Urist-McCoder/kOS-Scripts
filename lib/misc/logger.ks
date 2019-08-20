@@ -17,7 +17,7 @@ local lineNum is 1.
 
 global function logger {
 	parameter p_message is "".
-	parameter p_consoleEcho is true.
+	parameter p_echo is true.
 	parameter p_target is MISSION_NAME.
 	
 	set p_message to lineNum + ".  " + p_message.
@@ -25,9 +25,11 @@ global function logger {
 	if (lineNum < 10) set p_message to " " + p_message.
 	
 	set lineNum to lineNum + 1.
-	log p_message to p_target + ".log".
-	
-	if (p_consoleEcho) {
+	set p_target to p_target + ".log".
+
+	log p_message to p_target.
+
+	if (p_echo) {
 		print p_message.
 	}
 }

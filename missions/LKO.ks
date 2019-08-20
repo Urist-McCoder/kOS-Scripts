@@ -10,6 +10,5 @@ set MISSION_SCRIPT["import"] to {
 }.
 
 set MISSION_SCRIPT["execute"] to {
-	launchSettings().
-	launch().
+	launch(launchSettings()).
 }.

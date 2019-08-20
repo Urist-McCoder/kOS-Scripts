@@ -6,40 +6,48 @@ runOncePath("0:/lib/misc/smartStage").
 runOncePath("0:/lib/misc/smartWarp").
 
 local defWarpStop is 10.
-local settings is Lexicon().
-burnSettings().
 
 global function burnSettings {
-	local settings0 is Lexicon().
-	
-	set settings0["stopParam"] to false.
-	set settings0["warpStop"] to defWarpStop.
-	set settings0["forceBurn"] to false.
-	set settings0["dV"] to -1.
-	set settings0["message"] to "performing maneuver".
-	
-	set settings to settings0.	
-	return settings.
-}
-
-global function burn {
 	parameter burnVecFunction.
 	parameter stopPredicate.
 	parameter throttleFunction.
 	parameter burnUT.
+
+	local settings is Lexicon().
+	
+	// required parameters
+	set settings["burnVecFunction"] to burnVecFunction.
+	set settings["stopPredicate"] to stopPredicate.
+	set settings["throttleFunction"] to throttleFunction.
+	set settings["burnUT"] to burnUT.
+
+	// default vparameters
+	set settings["stopParam"] to false.
+	set settings["warpStop"] to defWarpStop.
+	set settings["forceBurn"] to false.
+	set settings["dV"] to -1.
+	set settings["message"] to "performing maneuver".
+		
+	return settings.
+}
+
+global function burn {
+	parameter settings.
 	
 	local warpStop is settings["warpStop"].
 	local estimatedDeltaV is settings["dV"].
-	
+	local burnUT is settings["burnUT"].
+
 	if (estimatedDeltaV <> -1) {
 		set burnUT to burnUT - burnTime(estimatedDeltaV / 2).
 	}
-	if (not settings["forceBurn"] and burnUT - warpStop < time:seconds) {
+
+	if (not settings["forceBurn"] and (burnUT - warpStop) < time:seconds) {
 		logger("cannot perform maneuver: too late").
 		return false.
 	}
 	
-	lock steering to burnVecFunction().
+	lock steering to settings["burnVecFunction"].
 	smartWarp(burnUT - time:seconds, settings["message"], warpStop).
 	
 	local t0 is time:seconds.
@@ -47,15 +55,15 @@ global function burn {
 	
 	local stopPred is {
 		if (settings["stopParam"]) {
-			return stopPredicate(burnT).
+			return settings["stopPredicate"](burnT).
 		} else {
-			return stopPredicate().
+			return settings["stopPredicate"]().
 		}
 	}.
 	
 	until (stopPred()) {
 		if (vang(steering, ship:facing:forevector) < 5) {
-			local th is min(1, max(0.01, throttleFunction())).
+			local th is min(1, max(0.01, settings["throttleFunction"]())).
 			lock throttle to th.
 		} else {
 			lock throttle to 0.

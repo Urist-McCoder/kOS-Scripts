@@ -3,7 +3,6 @@
 runOncePath("0:/lib/burn/burn").
 runOncePath("0:/lib/misc/logger").
 
-
 global function circularize {
 	parameter burnETA is -1.
 	parameter maxErr is 0.05.
@@ -18,26 +17,28 @@ global function circularize {
 	logger("initial orbit parameters:").
 	printInfo().
 	
-	local settings is burnSettings().
+	local settings is burnSettings(
+		{ return corrVec. },
+		{ return corrVec:mag < maxErr.},
+		{
+			local thr is ship:availablethrust.
+			if (thr > 0) {
+				return 5 * corrVec:mag * ship:mass / thr.
+			} else {
+				return 0.
+			}
+		},
+		time:seconds + burnETA
+	).
+
 	set settings["forceBurn"] to true.
 	set settings["message"] to "performing orbit circularization".
+	
 	if (warpStop <> -1) {
 		set settings["warpStop"] to warpStop.
 	}
 	
-	local ut is time:seconds + burnETA.
-	local burnVec is {return corrVec.}.
-	local stopPredicate is {return corrVec:mag < maxErr.}.
-	local thrFunction is {
-		local thr is ship:availablethrust.
-		if (thr > 0) {
-			return 5 * corrVec:mag * ship:mass / thr.
-		} else {
-			return 0.
-		}
-	}.
-	
-	burn(burnVec, stopPredicate, thrFunction, ut).
+	burn(settings).
 	
 	logger("circularization complete").
 	logger("circularized orbit parameters:").

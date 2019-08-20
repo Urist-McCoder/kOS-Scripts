@@ -28,7 +28,7 @@ local function doLaunch {
 	set settings["twr45deg"] to 3.
 	set settings["twr0deg"] to -1.
 	
-	launch().
+	launch(settings).
 }
 
 local function doTransfer {
@@ -65,15 +65,18 @@ local function doCorrectPeriapsis {
 			return radialVector().
 		}
 	}.
-	local predicate is {
-		return abs(ship:periapsis - tgtPeri) < 500.
-	}.
-	local throttleFunction is {return 0.1.}.
 	
-	local settings is burnSettings().
+	local settings is burnSettings(
+		burnVecFunction,
+		{ return abs(ship:periapsis - tgtPeri) < 500. },
+		{ return 0.1. },
+		0
+	).
+
 	set settings["forceBurn"] to true.
 	set settings["message"] to "correcting periapsis".
-	burn(burnVecFunction, predicate, throttleFunction, 0).
+
+	burn(settings).
 }
 
 local function doCaptureBurn {
@@ -151,12 +154,18 @@ local function doLanding {
 		
 		return vxcl(ship:body:position, ship:velocity:orbit):mag < 2.
 	}.
-	local throttleFunction is {return 1.}.
 	
-	local settings is burnSettings().
+	local settings is burnSettings(
+		burnVecFunction,
+		predicate,
+		{ return 1. },
+		0
+	).
+
 	set settings["forceBurn"] to true.
 	set settings["message"] to "killing horizontal velocity".
-	burn(burnVecFunction, predicate, throttleFunction, 0).
+
+	burn(settings).
 	
 	wait until ship:verticalspeed < -10.
 	landing(offset, 0, 0.9).

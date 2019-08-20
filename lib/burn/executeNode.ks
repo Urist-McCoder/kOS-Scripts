@@ -11,14 +11,19 @@ global function executeNode {
 	
 	logger("executing maneuver node").
 	
-	local settings is burnSettings().
+	local settings is burnSettings(
+		burnVec@,
+		stopPred@:bind(margin),
+		thrFunction@,
+		time:seconds + nextNode:ETA
+	).
+
 	set settings["forceBurn"] to forceBurn.
 	set settings["warpStop"] to warpStop.
 	set settings["dV"] to nextNode:deltaV:mag.
 	set settings["message"] to "executing maneuver node".
 	
-	local ut is time:seconds + nextNode:ETA.
-	local done is burn(burnVec@, stopPr@:bind(margin), thrFunction@, ut).
+	local done is burn(settings).
 	
 	if (done) {
 		remove nextNode.
@@ -32,7 +37,7 @@ local function burnVec {
 	return nextNode:deltaV.
 }
 
-local function stopPr {
+local function stopPred {
 	parameter margin.
 	
 	return nextNode:deltaV:mag <= margin.

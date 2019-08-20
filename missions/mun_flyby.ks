@@ -14,7 +14,8 @@ set MISSION_SCRIPT["import"] to {
 set MISSION_SCRIPT["execute"] to {
 	local settings is launchSettings().
 	set settings["boosterStage"] to 1.
-	launch().
+	
+	launch(settings).
 	
 	local tgt is Body("Mun").
 	local ht is hohmannTransfer(ship:obt:semimajoraxis, tgt:obt:semimajoraxis, ship:body:Mu).

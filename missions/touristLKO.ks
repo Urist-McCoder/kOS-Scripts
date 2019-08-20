@@ -2,7 +2,6 @@
 
 runOncePath("0:/lib/globals").
 
-
 set MISSION_SCRIPT["import"] to {
 	set MISSION_NAME to "Tourist LKO".
 	

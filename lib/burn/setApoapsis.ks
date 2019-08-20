@@ -10,7 +10,7 @@ local function burnVec {
 	return f * ship:velocity:orbit.
 }
 
-local function stopPr {
+local function stopPred {
 	parameter tgtApo.
 	parameter f.
 	
@@ -38,22 +38,24 @@ global function setApoapsis {
 		return false.
 	}
 	
-	local settings is burnSettings().
-	set settings["message"] to "changing apoapsis".
-	
-	if (ship:obt:eccentricity < 0.01) {
-		local dv is hohmannTransfer(ship:obt:semimajoraxis, ship:body:radius + tgtApo)[0].
-		set settings["dV"] to dv.
-	}
-	
 	local f is 1.
 	if (ship:apoapsis > tgtApo) {
 		set f to -1.
 	}
 	
-	local bV is burnVec@:bind(f).
-	local sP is stopPr@:bind(tgtApo, f).
-	local tF is thrFunction@:bind(tgtApo, throttleDownDiff).
+	local settings is burnSettings(
+		burnVec@:bind(f),
+		stopPred@:bind(tgtApo, f),
+		thrFunction@:bind(tgtApo, throttleDownDiff),
+		ut
+	).
+
+	set settings["message"] to "changing apoapsis".
+
+	if (ship:obt:eccentricity < 0.01) {
+		local dv is hohmannTransfer(ship:obt:semimajoraxis, ship:body:radius + tgtApo)[0].
+		set settings["dV"] to dv.
+	}
 	
-	return burn(bV, sP, tF, ut).
+	return burn(settings).
 }

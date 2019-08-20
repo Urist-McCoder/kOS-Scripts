@@ -10,43 +10,40 @@ runOncePath("0:/lib/misc/smartWarp").
 runOncePath("0:/lib/misc/vec").
 runOncePath("0:/lib/ship/caPitch").
 
-local settings is Lexicon().
-launchSettings().
-
 global function launchSettings {
-	local settings0 is Lexicon().
+	local settings is Lexicon().
 	
-	set settings0["suborbital"] to false.
-	set settings0["boosterStage"] to -1.
-	set settings0["boosterDropPeriapsis"] to 2e4.
-	set settings0["useRCS"] to true.
+	set settings["suborbital"] to false.
+	set settings["boosterStage"] to -1.
+	set settings["boosterDropPeriapsis"] to 2e4.
+	set settings["useRCS"] to true.
 	
 	// ascent curve
-	set settings0["alt90deg"] to 0.
-	set settings0["alt60deg"] to 1e4.
-	set settings0["alt45deg"] to 2e4.
-	set settings0["alt0deg"] to 5e4.
+	set settings["alt90deg"] to 0.
+	set settings["alt60deg"] to 1e4.
+	set settings["alt45deg"] to 2e4.
+	set settings["alt0deg"] to 5e4.
 	
 	// TWR curve (-1 for no TWR limit)
-	set settings0["twr90deg"] to -1.
-	set settings0["twr60deg"] to -1.
-	set settings0["twr45deg"] to -1.
-	set settings0["twr0deg"] to -1.
+	set settings["twr90deg"] to -1.
+	set settings["twr60deg"] to -1.
+	set settings["twr45deg"] to -1.
+	set settings["twr0deg"] to -1.
 	
 	// orbital parameters
-	set settings0["altitude"] to 8e4.
-	set settings0["inclination"] to ship:obt:inclination.
-	set settings0["LAN"] to ship:obt:LAN.
+	set settings["altitude"] to 8e4.
+	set settings["inclination"] to ship:obt:inclination.
+	set settings["LAN"] to ship:obt:LAN.
 	
 	// launch window
-	set settings0["waitForLaunchWindow"] to false.
-	set settings0["launchWindowAheadSec"] to 30.
+	set settings["waitForLaunchWindow"] to false.
+	set settings["launchWindowAheadSec"] to 30.
 	
-	set settings to settings0.
 	return settings.
 }
 
 local function printSettings {
+	parameter settings.
 	parameter indent is 4.
 	
 	local s is "".
@@ -80,9 +77,11 @@ local function loopP {
 }
 
 global function launch {
+	parameter settings.
+
 	logger("launching from " + ship:body:name).
 	logger("launch settings:").
-	printSettings().
+	printSettings(settings).
 	
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //

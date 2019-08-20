@@ -1,16 +1,13 @@
 @LazyGlobal off.
 
-local col is 5.
-local row is 1.
-local rowStep is 2.
-
 global function loopPrint {
 	parameter printList is List().
 	
 	clearscreen.
-	local i is row.
+	local i is 1.
+	
 	for item in printList {
-		print item at(col, i).
-		set i to i + rowStep.
+		print item at(5, i).
+		set i to i + 2.
 	}
 }
