@@ -1,9 +1,8 @@
 @LazyGlobal off.
 
-import("burn/burn").
-import("maneuver/hohmannTransfer").
-import("misc/logger").
-
+runOncePath("0:/lib/burn/burn").
+runOncePath("0:/lib/maneuver/hohmannTransfer").
+runOncePath("0:/lib/misc/logger").
 
 local function burnVec {
 	parameter f.

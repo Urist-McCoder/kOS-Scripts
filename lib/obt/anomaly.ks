@@ -1,6 +1,5 @@
 @LazyGlobal off.
 
-
 global function taToMa {
 	parameter taDeg.
 	parameter ecc.

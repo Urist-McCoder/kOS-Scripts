@@ -1,7 +1,6 @@
 @LazyGlobal off.
 
-import("ship/getIsp").
-
+runOncePath("0:/lib/ship/getIsp").
 
 global function burnTime {
 	parameter dV.

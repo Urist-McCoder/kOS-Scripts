@@ -1,16 +1,14 @@
 // a template for mission scripts
 @LazyGlobal off.
 
-import("globals").
+runOncePath("0:/lib/globals").
 
-
-// imports go here
 set MISSION_SCRIPT["import"] to {
 	// set global variables
 	set MISSION_NAME to "Template Mission Script".
 	
 	// import some libs
-	import("misc/logger").
+	runOncePath("0:/lib/misc/logger").
 	
 	// do some NON TIME-CONSUMING initialization
 	logger(MISSION_NAME + " has started!").

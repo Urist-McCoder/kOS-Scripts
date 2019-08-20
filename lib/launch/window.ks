@@ -1,9 +1,8 @@
 @LazyGlobal off.
 
-import("misc/converter").
+runOncePath("0:/lib/misc/converter").
 
-
-// returns List(time_to_closest, time_to_second)
+// returns List(time_to_closest, time_to_other)
 global function timeToLaunchWindow {
 	parameter p_lat.
 	parameter p_inc.

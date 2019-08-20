@@ -1,15 +1,14 @@
 @LazyGlobal off.
 
-import("burn/circularize").
-import("launch/window").
-import("misc/converter").
-import("misc/logger").
-import("misc/loopPrint").
-import("misc/smartStage").
-import("misc/smartWarp").
-import("misc/vec").
-import("ship/caPitch").
-
+runOncePath("0:/lib/burn/circularize").
+runOncePath("0:/lib/launch/window").
+runOncePath("0:/lib/misc/converter").
+runOncePath("0:/lib/misc/logger").
+runOncePath("0:/lib/misc/loopPrint").
+runOncePath("0:/lib/misc/smartStage").
+runOncePath("0:/lib/misc/smartWarp").
+runOncePath("0:/lib/misc/vec").
+runOncePath("0:/lib/ship/caPitch").
 
 local settings is Lexicon().
 launchSettings().
@@ -291,7 +290,7 @@ global function launch {
 				local tgtVSpeed is min(maxVSpeed, max(-maxVSpeed, altDiff / 10)).
 				
 				local az is azymuthOfVector(ship:velocity:orbit).
-				local pt is caPitch(tgtVSpeed, maxVAcc).
+				local pt is caPitch(tgtVSpeed, -90, 90, maxVAcc).
 				
 				lock steering to Heading(az, pt).
 				

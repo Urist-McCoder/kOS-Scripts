@@ -1,9 +1,8 @@
 @LazyGlobal off.
 
-import("burn/burn").
-import("maneuver/hohmannTransfer").
-import("misc/logger").
-
+runOncePath("0:/lib/burn/burn").
+runOncePath("0:/lib/maneuver/hohmannTransfer").
+runOncePath("0:/lib/misc/logger").
 
 local function burnVec {
 	parameter f.
@@ -41,6 +40,7 @@ global function setApoapsis {
 	
 	local settings is burnSettings().
 	set settings["message"] to "changing apoapsis".
+	
 	if (ship:obt:eccentricity < 0.01) {
 		local dv is hohmannTransfer(ship:obt:semimajoraxis, ship:body:radius + tgtApo)[0].
 		set settings["dV"] to dv.

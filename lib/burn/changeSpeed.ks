@@ -1,8 +1,7 @@
 @LazyGlobal off.
 
-import("burn/burn").
-import("ship/burnTime").
-
+runOncePath("0:/lib/burn/burn").
+runOncePath("0:/lib/ship/burnTime").
 
 global function changeSpeed {
 	parameter burnVecFunction.

@@ -1,17 +1,15 @@
 // mission to LKO
 @LazyGlobal off.
 
-import("globals").
+runOncePath("0:/lib/globals").
 
-
-// imports go here
 set MISSION_SCRIPT["import"] to {
 	set MISSION_NAME to "LKO".
 	
-	import("launch/launch").
+	runOncePath("0:/lib/launch/launch").
 }.
 
 set MISSION_SCRIPT["execute"] to {
-	local settings is launchSettings().
+	launchSettings().
 	launch().
 }.

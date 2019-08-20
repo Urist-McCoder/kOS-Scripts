@@ -1,15 +1,14 @@
 @LazyGlobal off.
 
-import("globals").
-
+runOncePath("0:/lib/globals").
 
 set MISSION_SCRIPT["import"] to {
 	set MISSION_NAME to "Mun Fly-By".
 	
-	import("launch/launch").
-	import("burn/executeNode").
-	import("maneuver/hohmannTransfer").
-	import("obt/vec").
+	runOncePath("0:/lib/launch/launch").
+	runOncePath("0:/lib/burn/executeNode").
+	runOncePath("0:/lib/maneuver/hohmannTransfer").
+	runOncePath("0:/lib/obt/vec").
 }.
 
 set MISSION_SCRIPT["execute"] to {
@@ -19,6 +18,7 @@ set MISSION_SCRIPT["execute"] to {
 	
 	local tgt is Body("Mun").
 	local ht is hohmannTransfer(ship:obt:semimajoraxis, tgt:obt:semimajoraxis, ship:body:Mu).
+	
 	add Node(hohmannTransferWindow(ship, tgt, 0, true), 0, 0, ht[0]).
 	executeNode().
 	

@@ -1,7 +1,6 @@
 @LazyGlobal off.
 
-import("misc/logger").
-
+runOncePath("0:/lib/misc/logger").
 
 local prevThrust is ship:availablethrust.
 local prevTime is time:seconds.
@@ -11,6 +10,7 @@ local function stage0 {
 	
 	logger("stage #" + stage:number + " separated").
 	stage.
+	
 	set prevTime to time:seconds.
 	set prevThrust to ship:availablethrust.
 }

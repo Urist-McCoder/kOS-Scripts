@@ -1,7 +1,7 @@
 @LazyGlobal off.
 
-import("burn/burn").
-import("misc/logger").
+runOncePath("0:/lib/burn/burn").
+runOncePath("0:/lib/misc/logger").
 
 
 global function circularize {
@@ -10,7 +10,6 @@ global function circularize {
 	parameter warpStop is -1.
 	
 	local lock obtSpeed to sqrt(ship:body:mu / (ship:body:radius + ship:altitude)).
-	local lock radiusVec to ship:body:position - ship:position.
 	local lock unitVec to vxcl(ship:body:position, ship:velocity:orbit):normalized.
 	local lock obtVec to obtSpeed * unitVec.
 	local lock corrVec to obtVec - ship:velocity:orbit.

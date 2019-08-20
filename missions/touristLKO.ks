@@ -1,6 +1,6 @@
 @LazyGlobal off.
 
-import("globals").
+runOncePath("0:/lib/globals").
 
 
 set MISSION_SCRIPT["import"] to {
@@ -8,8 +8,10 @@ set MISSION_SCRIPT["import"] to {
 	
 	set ship:name to MISSION_NAME.
 	
-	import("launch/launch").
-	import("burn/setPeriapsis").
+	runOncePath("0:/lib/burn/setPeriapsis").
+	runOncePath("0:/lib/launch/launch").
+	runOncePath("0:/lib/misc/logger").
+	runOncePath("0:/lib/misc/smartWarp").
 }.
 
 set MISSION_SCRIPT["execute"] to {

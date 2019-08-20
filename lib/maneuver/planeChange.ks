@@ -1,9 +1,8 @@
 @LazyGlobal off.
 
-import("misc/converter").
-import("obt/vec").
-import("obt/timeToNodes").
-
+runOncePath("0:/lib/misc/converter").
+runOncePath("0:/lib/obt/vec").
+runOncePath("0:/lib/obt/timeToNodes").
 
 local settings is Lexicon().
 planeChangeSettings().
@@ -25,7 +24,6 @@ global function planeChange {
 	parameter tgtLAN is target:obt:LAN.
 	
 	local time0 is time.
-	local orgNormal is normalVector(origin).
 	local tgtNormal is getNormal(tgtInc, tgtLAN, origin:body).
 	local nodeTimes is timeToNodes(origin, tgtNormal, settings["highestFirst"]).
 	

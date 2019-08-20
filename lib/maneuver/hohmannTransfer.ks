@@ -1,7 +1,6 @@
 @LazyGlobal off.
 
-import("obt/vec").
-
+runOncePath("0:/lib/obt/vec").
 
 // returns: List(dv1, dv2, dV_total)
 global function hohmannTransfer {

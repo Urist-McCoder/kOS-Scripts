@@ -1,36 +1,34 @@
 @LazyGlobal off.
 
-import("globals").
+runOncePath("0:/lib/globals").
 
-
-// imports go here
 set MISSION_SCRIPT["import"] to {
 	set MISSION_NAME to "Mun Landing".
 
-	import("burn/burn").
-	import("burn/changeSpeed").
-	import("burn/setApoapsis").
-	import("burn/circularize").
-	import("landing/landing").
-	import("launch/launch").
-	import("maneuver/hohmannTransfer").
-	import("misc/logger").
-	import("misc/loopPrint").
-	import("misc/smartWarp").
-	import("obt/vec").
-	import("ship/caPitch").
+	runOncePath("0:/lib/burn/burn").
+	runOncePath("0:/lib/burn/changeSpeed").
+	runOncePath("0:/lib/burn/setApoapsis").
+	runOncePath("0:/lib/burn/circularize").
+	runOncePath("0:/lib/landing/landing").
+	runOncePath("0:/lib/launch/launch").
+	runOncePath("0:/lib/maneuver/hohmannTransfer").
+	runOncePath("0:/lib/misc/logger").
+	runOncePath("0:/lib/misc/loopPrint").
+	runOncePath("0:/lib/misc/smartWarp").
+	runOncePath("0:/lib/obt/vec").
+	runOncePath("0:/lib/ship/burnTime").
+	runOncePath("0:/lib/ship/caPitch").
+	runOncePath("0:/lib/ship/geopositionsAhead").
 }.
 
 local function doLaunch {
-	local launchSettings is launchSettings().
-	set launchSettings["twr90deg"] to 2.
-	set launchSettings["twr60deg"] to 2.5.
-	set launchSettings["twr45deg"] to 3.
-	set launchSettings["twr0deg"] to -1.
-	set launchSettings["boosterStage"] to 1.
+	local settings is launchSettings().
+	set settings["twr90deg"] to 2.
+	set settings["twr60deg"] to 2.5.
+	set settings["twr45deg"] to 3.
+	set settings["twr0deg"] to -1.
 	
 	launch().
-	stage.
 }
 
 local function doTransfer {
@@ -83,29 +81,53 @@ local function doCaptureBurn {
 }
 
 local function doWaitForLandingSpot {
-	local flag is false.
-	local tgtNormal is normalVector(ship:body).
+	parameter visited is List().	// visited biome names
+
+	lock steering to -ship:velocity:surface.
+	local stopTime is burnTime(ship:velocity:surface:mag).
+	local stopTimeList is List(stopTime, 1.1 * stopTime, 1.2 * stopTime, 1.3 * stopTime).
+	local sList is List().
 	
-	lock steering to normalVector().	
-	until (flag) {
-		local shipVec is ship:position - ship:body:position.
-		local homeVec is ship:body:body:position - ship:body:position.
-		
-		local shipVecVxcl is vxcl(tgtNormal, shipVec).
-		local homeVecVxcl is vxcl(tgtNormal, homeVec).
-		
-		local angRaw is vang(shipVec, homeVec).
-		local angVxcl is vang(shipVecVxcl, homeVecVxcl).
-		
-		if (angVxcl < 5) {
-			set flag to true.
+	
+	local aheadTime is 60.
+	local prevTime is time:seconds.
+	
+	until (false) {
+		for s in stopTimeList {
+			sList:add(aheadTime + s).
 		}
 		
-		loopPrint(List(
-			"angle (raw):   " + round(angRaw, 2),
-			"angle (vxcl):  " + round(angVxcl, 2)
-		)).
-		wait 0.
+		local geoList is geopositionsAhead(sList).
+		local goodBiome is true.
+		
+		for geo in geoList {
+			// requires biome addon
+			local biome is addons:biome:at(ship:body, geo).
+			
+			if (visited:contains(biome)) {
+				set goodBiome to false.
+				break.
+			}
+		}
+		
+		if (goodBiome) {
+			smartWarp(aheadTime, "for landing spot").
+			return.
+		} else if (aheadTime > ship:obt:period) {
+			logger("landing spot not found =(").
+			print 1 / 0.
+		} else {
+			set aheadTime to aheadTime + 20.
+		}
+		
+		if (time:seconds - prevTime > 0.5) {
+			set prevTime to time:seconds.
+			loopPrint(List(
+				"stop time: " + round(stopTime, 2),
+				"ahead sec: " + round(aheadTime, 2),
+				"ahead %: " + (round(aheadTime / ship:obt:period, 2) * 100) + "%"
+			)).
+		}
 	}
 }
 
@@ -117,7 +139,7 @@ local function doLanding {
 	local burnVecFunction is {
 		local dirVec is vxcl(ship:body:position, -ship:velocity:orbit):normalized.
 		local pitchVec is -ship:body:position:normalized.
-		local pitchMag is sin(caPitch()).
+		local pitchMag is sin(caPitch(0, 0)).
 		
 		return dirVec + (pitchVec * pitchMag).
 	}.
@@ -151,9 +173,9 @@ set MISSION_SCRIPT["execute"] to {
 	doLaunch().
 	doTransfer(tgt).
 	doTransit(tgt).	
-	doCorrectPeriapsis(8000).
+	doCorrectPeriapsis(9000).
 	doCaptureBurn().
-	doWaitForLandingSpot().
+	doWaitForLandingSpot(List("Midlands", "Lowlands")).
 	doLanding(2).
 	doCollectScience().
 }.

@@ -1,6 +1,5 @@
 @LazyGlobal off.
 
-
 global function lngObtToBody {
 	parameter p_body.
 	parameter p_lng.

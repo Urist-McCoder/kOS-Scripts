@@ -1,9 +1,8 @@
 @LazyGlobal off.
 
-import("misc/beautifyTime").
-import("misc/logger").
-import("misc/loopPrint").
-
+runOncePath("0:/lib/misc/beautifyTime").
+runOncePath("0:/lib/misc/logger").
+runOncePath("0:/lib/misc/loopPrint").
 
 local timeWarp is kuniverse:timeWarp.
 local warpRates is timeWarp:railsRateList.
@@ -35,7 +34,7 @@ local function limitWarp {
 
 global function smartWarp {
 	parameter p_seconds is 0.
-	parameter p_message is "—".
+	parameter p_message is "ï¿½".
 	parameter margin is 1.
 	
 	// remember when to stop waiting

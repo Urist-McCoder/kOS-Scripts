@@ -1,10 +1,9 @@
 @LazyGlobal off.
 
-import("ship/burnTime").
-import("misc/logger").
-import("misc/smartStage").
-import("misc/smartWarp").
-
+runOncePath("0:/lib/ship/burnTime").
+runOncePath("0:/lib/misc/logger").
+runOncePath("0:/lib/misc/smartStage").
+runOncePath("0:/lib/misc/smartWarp").
 
 local defWarpStop is 10.
 local settings is Lexicon().

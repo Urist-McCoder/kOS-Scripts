@@ -1,8 +1,7 @@
 @LazyGlobal off.
 
-import("obt/vec").
-import("obt/anomaly").
-
+runOncePath("0:/lib/obt/vec").
+runOncePath("0:/lib/obt/anomaly").
 
 global function timeToNodes {
 	parameter origin is ship.
@@ -11,11 +10,10 @@ global function timeToNodes {
 	
 	local orgNormal is normalVector(origin).
 	local pVec is vcrs(tgtNormal, orgNormal).
-	local tgtVec is vcrs(tgtNormal, pVec).
-	local orgVec is vcrs(orgNormal, pVec).
 	
 	local bodyVec is origin:position - origin:body:position.
 	local ahead is vang(bodyVec, pVec).
+	
 	if (pVec * origin:velocity:orbit < 0) {
 		set ahead to 360 - ahead.
 	}

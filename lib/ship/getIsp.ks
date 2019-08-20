@@ -1,6 +1,5 @@
 @LazyGlobal off.
 
-
 global function getIsp {
 	local engList is List().
 	local totalC is 0.

@@ -1,13 +1,12 @@
 @LazyGlobal off.
 
-import("burn/burn").
-import("misc/logger").
+runOncePath("0:/lib/burn/burn").
+runOncePath("0:/lib/misc/logger").
 
 
 global function executeNode {
 	parameter warpStop is 10.
 	parameter margin is 0.05.
-	parameter maxAngleErr is 4.
 	parameter forceBurn is false.
 	
 	logger("executing maneuver node").
@@ -20,6 +19,7 @@ global function executeNode {
 	
 	local ut is time:seconds + nextNode:ETA.
 	local done is burn(burnVec@, stopPr@:bind(margin), thrFunction@, ut).
+	
 	if (done) {
 		remove nextNode.
 		wait 0.

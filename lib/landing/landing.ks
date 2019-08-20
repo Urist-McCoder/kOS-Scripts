@@ -1,8 +1,7 @@
 @LazyGlobal off.
 
-import("misc/logger").
-import("misc/loopPrint").
-
+runOncePath("0:/lib/misc/logger").
+runOncePath("0:/lib/misc/loopPrint").
 
 global function getTrueAlt {
 	parameter offset is 0.
@@ -18,12 +17,12 @@ global function landing {
 	
 	local lock h to getTrueAlt(altOffset).
 	local lock g to ship:body:Mu / (ship:body:radius + ship:altitude) ^ 2.
-	local lock tgtAcc to (ship:verticalSpeed ^ 2) / (2 * h) + g.
 	local lock totalAcc to ship:availablethrust / ship:mass.
 	local lock ang to vang((ship:position - ship:body:position), ship:facing:forevector).
-	local lock vAcc to totalAcc.// * cos(ang).
-	local lock thr to tgtAcc / vAcc.
-	local lock ETL to -ship:verticalSpeed / (vAcc - g).
+	local lock vAcc to totalAcc * cos(ang) - g.
+	local lock suicideBurnH to ship:verticalSpeed ^ 2 / (2 * vAcc).
+	local lock thr to suicideBurnH / h.
+	local lock ETL to -ship:verticalSpeed / vAcc.
 	
 	lock steering to -ship:velocity:surface.
 	local burning is false.
@@ -68,10 +67,10 @@ global function landing {
 		}
 		
 		loopPrint(List(
-			"Altitude: " + round(h),
-			"Vert spd: " + round(-ship:verticalSpeed, 2),
-			"Throttle: " + thrStr,
-			"Est time: " + round(ETL, 2)
+			"Altitude:  " + round(h),
+			"Vert spd:  " + round(-ship:verticalSpeed, 2),
+			"Throttle:  " + thrStr,
+			"Est time:  " + round(ETL, 2)
 		)).
 		wait 0.
 	}

@@ -1,7 +1,6 @@
 @LazyGlobal off.
 
-import("globals").
-
+runOncePath("0:/lib/globals").
 
 if (CLEAR_PREV_LOGS) {
 	local itemList is List().
@@ -26,7 +25,7 @@ global function logger {
 	if (lineNum < 10) set p_message to " " + p_message.
 	
 	set lineNum to lineNum + 1.
-	log p_message to (p_target + ".log").
+	log p_message to p_target + ".log".
 	
 	if (p_consoleEcho) {
 		print p_message.
