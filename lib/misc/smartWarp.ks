@@ -46,7 +46,7 @@ global function smartWarp {
 	}
 	
 	// modify p_message for displaying
-	set p_message to "WAITING :   " + p_message.
+	set p_message to "WAITING:    " + p_message.
 	
 	until (timeLeft:seconds < 0.05) {	// approx 1 game tick
 		limitWarp(timeLeft:seconds, margin).

@@ -7,7 +7,7 @@ global function loopPrint {
 	local i is 1.
 	
 	for item in printList {
-		print item at(5, i).
+		print item at(2, i).
 		set i to i + 2.
 	}
 }

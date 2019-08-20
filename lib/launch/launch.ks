@@ -36,7 +36,6 @@ global function launchSettings {
 	set settings["LAN"] to ship:obt:LAN.
 	
 	// launch window
-	set settings["waitForLaunchWindow"] to false.
 	set settings["launchWindowAheadSec"] to 30.
 	
 	return settings.
@@ -201,7 +200,10 @@ global function launch {
 		return azymuthOfVector(corrVec).
 	}
 	
-	if (settings["waitForLaunchWindow"]) {
+	local incDiff is abs(ship:obt:inclination - tgtInc).
+	local lanDiff is abs(ship:obt:LAN - tgtLAN).
+
+	if (incDiff > 1 or lanDiff > 1) {
 		local times is timeToLaunchWindow(ship:latitude, tgtInc, tgtLAN).
 		local ahead is settings["launchWindowAheadSec"].
 		
@@ -284,8 +286,8 @@ global function launch {
 		
 			if (maxAcc > 0) {
 				local altDiff is tgtAlt - ship:altitude.
-				local maxVAcc is maxAcc / 5.
-				local maxVSpeed is maxVAcc * 5.
+				local maxVAcc is maxAcc / 2.
+				local maxVSpeed is maxVAcc * 2.
 				local tgtVSpeed is min(maxVSpeed, max(-maxVSpeed, altDiff / 10)).
 				
 				local az is azymuthOfVector(ship:velocity:orbit).
@@ -303,6 +305,7 @@ global function launch {
 				), false).
 			}
 			
+			smartStage().
 			wait 0.
 		}
 		lock throttle to 0.

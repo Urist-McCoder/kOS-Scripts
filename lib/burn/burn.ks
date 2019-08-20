@@ -47,7 +47,7 @@ global function burn {
 		return false.
 	}
 	
-	lock steering to settings["burnVecFunction"].
+	lock steering to settings["burnVecFunction"]().
 	smartWarp(burnUT - time:seconds, settings["message"], warpStop).
 	
 	local t0 is time:seconds.

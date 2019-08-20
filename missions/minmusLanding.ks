@@ -6,6 +6,7 @@ set MISSION_SCRIPT["import"] to {
 	set MISSION_NAME to "Mun Landing".
 
 	runOncePath("0:/lib/burn/burn").
+	runOncePath("0:/lib/burn/executeNode").
 	runOncePath("0:/lib/burn/changeSpeed").
 	runOncePath("0:/lib/burn/setApoapsis").
 	runOncePath("0:/lib/burn/circularize").
@@ -22,19 +23,28 @@ set MISSION_SCRIPT["import"] to {
 }.
 
 local function doLaunch {
+	parameter tgt.
+
 	local settings is launchSettings().
 	set settings["twr90deg"] to 2.
 	set settings["twr60deg"] to 2.5.
 	set settings["twr45deg"] to 3.
 	set settings["twr0deg"] to -1.
+
+	set settings["inclination"] to tgt:obt:inclination.
+	set settings["LAN"] to tgt:obt:LAN.
 	
 	launch(settings).
+
+	lock steering to normalVector().
+	wait 10.
+	stage.
 }
 
 local function doTransfer {
 	parameter tgt.
 	
-	local tgtSMA is tgt:obt:semimajoraxis - 2 * tgt:radius.
+	local tgtSMA is tgt:obt:apoapsis + tgt:body:radius.
 	local dV is hohmannTransfer(ship:obt:semimajoraxis, tgtSMA)[0].
 	local burnETA is hohmannTransferWindow(ship, tgt).
 	
@@ -43,7 +53,8 @@ local function doTransfer {
 		set burnETA to hohmannTransferWindow(ship, tgt).
 	}
 	
-	changeSpeed({return ship:velocity:orbit.}, dV, burnETA).
+	add Node(time:seconds + burnETA, 0, 0, dV).
+	executeNode().
 }
 
 local function doTransit {
@@ -79,6 +90,22 @@ local function doCorrectPeriapsis {
 	burn(settings).
 }
 
+local function doChangeInclination {
+	parameter tgtInc.
+
+	local settings is burnSettings(
+		normalVector@,
+		{ return ship:obt:inclination > tgtInc. },
+		{ return 0.1. },
+		0
+	).
+
+	set settings["forceBurn"] to true.
+	set settings["message"] to "changing inclination".
+
+	burn(settings).
+}
+
 local function doCaptureBurn {
 	circularize(ETA:periapsis).
 }
@@ -91,11 +118,11 @@ local function doWaitForLandingSpot {
 	local stopTimeList is List(stopTime, 1.1 * stopTime, 1.2 * stopTime, 1.3 * stopTime).
 	local sList is List().
 	
-	
 	local aheadTime is 60.
 	local prevTime is time:seconds.
 	
 	until (false) {
+		sList:clear().
 		for s in stopTimeList {
 			sList:add(aheadTime + s).
 		}
@@ -120,7 +147,7 @@ local function doWaitForLandingSpot {
 			logger("landing spot not found =(").
 			print 1 / 0.
 		} else {
-			set aheadTime to aheadTime + 20.
+			set aheadTime to aheadTime + 5.
 		}
 		
 		if (time:seconds - prevTime > 0.5) {
@@ -140,7 +167,7 @@ local function doLanding {
 	local initialNormal is normalVector().
 	
 	local burnVecFunction is {
-		local dirVec is vxcl(ship:body:position, -ship:velocity:orbit):normalized.
+		local dirVec is vxcl(ship:body:position, -ship:velocity:surface):normalized.
 		local pitchVec is -ship:body:position:normalized.
 		local pitchMag is sin(caPitch(0, 0)).
 		
@@ -152,7 +179,7 @@ local function doLanding {
 			return true.
 		}
 		
-		return vxcl(ship:body:position, ship:velocity:orbit):mag < 2.
+		return vxcl(ship:body:position, ship:velocity:surface):mag < 2.
 	}.
 	
 	local settings is burnSettings(
@@ -167,7 +194,7 @@ local function doLanding {
 
 	burn(settings).
 	
-	wait until ship:verticalspeed < -10.
+	wait until ship:verticalspeed < -3.
 	landing(offset, 0, 0.9).
 }
 
@@ -175,14 +202,14 @@ local function doCollectScience {
 	toggle ag2.
 }
 
-// script goes here
 set MISSION_SCRIPT["execute"] to {
-	local tgt is Body("Mun").
+	local tgt is Body("Minmus").
 
-	doLaunch().
+	doLaunch(tgt).
 	doTransfer(tgt).
-	doTransit(tgt).	
-	doCorrectPeriapsis(9000).
+	doTransit(tgt).
+	doChangeInclination(80).
+	doCorrectPeriapsis(7000).
 	doCaptureBurn().
 	doWaitForLandingSpot(List("Midlands", "Lowlands")).
 	doLanding(2).
