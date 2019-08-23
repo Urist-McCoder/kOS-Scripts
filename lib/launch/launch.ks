@@ -281,7 +281,8 @@ global function launch {
 		
 		// CA burn
 		lock throttle to 1.
-		until (ship:periapsis >= max(0, boosterDropPeri - 500)) {
+		local tgtPeri is max(0, min(tgtAlt, boosterDropPeri - 500)).
+		until (ship:periapsis >= tgtPeri) {
 			local maxAcc is ship:availablethrust / ship:mass.
 		
 			if (maxAcc > 0) {

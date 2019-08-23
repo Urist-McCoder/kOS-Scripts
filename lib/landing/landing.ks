@@ -77,5 +77,4 @@ global function landing {
 	
 	lock throttle to 0.
 	lock steering to -ship:body:position.
-	SAS on. RCS on.
 }
